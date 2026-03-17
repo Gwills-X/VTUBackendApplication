@@ -13,12 +13,14 @@ use App\Http\Controllers\Admin\TransactionController as AdminTransactionControll
 use App\Http\Controllers\Admin\WalletController as AdminWalletController;
 use App\Http\Controllers\Admin\DataPlanController as AdminDataPlanController;
 use App\Http\Controllers\Admin\NetworkPlanCategoryController;
+use App\Http\Controllers\Admin\ElectricityController as AdminElectricityController;
 
 use App\Http\Controllers\User\UserController as NormalUserController;
 use App\Http\Controllers\User\WalletController as NormalWalletController;
 use App\Http\Controllers\User\TopupController;
 use App\Http\Controllers\User\Transactions;
 use App\Http\Controllers\User\DataPlanController as UserDataController;
+use App\Http\Controllers\User\ElectricityController as UserElectricityController;
 use App\Http\Controllers\Webhook\VtuWebhookController;
 
 /*
@@ -83,6 +85,17 @@ Route::middleware(['auth:sanctum'])
         Route::post('/network-plan-categories', [NetworkPlanCategoryController::class, 'store']);
         Route::put('/dataplans/{dataPlan}/toggle-active', [AdminDataPlanController::class, 'toggleActive']);
 
+
+        // the apis for electricity
+  Route::get('/electricity', [AdminElectricityController::class, 'index']);
+
+    Route::post('/electricity', [AdminElectricityController::class, 'store']);
+
+    Route::put('/electricity/{id}', [AdminElectricityController::class, 'update']);
+
+    Route::patch('/electricity/{id}/toggle', [AdminElectricityController::class, 'toggle']);
+
+    Route::delete('/electricity/{id}', [AdminElectricityController::class, 'destroy']);
     });
 
 /*
@@ -114,14 +127,17 @@ Route::middleware(['auth:sanctum'])
         Route::middleware(['pin.set'])->group(function () {
             Route::post('/topup/airtime', [TopupController::class, 'buyAirtime']);
             Route::post('/topup/data', [TopupController::class, 'buyData']);
+            Route::post("/electricityPurchase", [UserElectricityController::class, "purchase"]);
         });
 
         // Transaction history
         Route::get('/transactions', [Transactions::class, 'myTransactions']);
-        Route::delete('/transactions/{id}', [Transactions::class, 'deleteTransaction']);
+
 
         Route::get('/dataplans', [UserDataController::class, 'index']);
         Route::get('/dataplans/{id}', [UserDataController::class, 'show']);
+
+        Route::get("/electricityProvider", [UserElectricityController::class, "providers"]);
     });
 
 // Webhook

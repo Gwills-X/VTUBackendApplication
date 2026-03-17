@@ -17,7 +17,7 @@ class Transactions extends Controller
 
         $transactions = $user->transactions()
                              ->latest()
-                             ->paginate(10);
+                             ->paginate(20);
 
         $wallet = $user->wallet;
 
@@ -29,29 +29,5 @@ class Transactions extends Controller
     }
 
 
-    public function deleteTransaction(Request $request, $id)
-    {
-        $user = $request->user();
 
-        $transaction = $user->transactions()->where("id", $id)->first();
-        if(!$transaction){
-            return response()->json([
-                "status" => false,
-                "message"=> "Transaction Not found"
-            ], 404);
-        }
-        if ($transaction->status === 'success') {
-            return response()->json([
-                'status' => false,
-                'message' => 'Approved transactions cannot be deleted.'
-            ], 400);
-        }
-
-        $transaction->delete();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Transaction deleted successfully.'
-        ]);
-    }
 }

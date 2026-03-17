@@ -37,6 +37,7 @@ class VtuService
         );
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | BUY DATA
@@ -253,4 +254,153 @@ if($amount < 0){
             ];
         }
     }
+
+public function buyElectricity($user, $data)
+{
+    return $this->processElectricity($user, $data);
+}
+
+
+    private function processElectricity($user, $data)
+{
+    $wallet = $user->wallet;
+
+    if (!$wallet) {
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            "message" => "Invalid user wallet",
+        ]);
+    }
+
+    $amount = $data['amount'];
+
+    if ($wallet->balance < $amount) {
+        return [
+            'status' => false,
+            'message' => 'Insufficient balance',
+            'balance' => $wallet->balance
+        ];
+    }
+
+    try {
+
+        DB::beginTransaction();
+
+        $reference = 'ELEC-' . uniqid();
+
+        $transaction = Transaction::create([
+            'user_id' => $user->id,
+            'type' => 'buy_electricity',
+            'amount' => $amount,
+            'status' => 'pending',
+            'reference' => $reference,
+            'phone_number' => $data['phone_number'],
+            'meta' => json_encode([
+                'electricity_distributor_id' => $data['electricity_distributor_id'],
+                'meter_number' => $data['meter_number'],
+                'meter_type' => $data['meter_type'],
+                'name' => $data['name']
+            ])
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEND REQUEST TO EXTERNAL VTU API
+        |--------------------------------------------------------------------------
+        */
+
+        $payload = [
+            "meter_number" => $data['meter_number'],
+            "meter_type" => $data['meter_type'],
+            "phone_number" => $data['phone_number'],
+            "amount" => $amount,
+            "name" => $data['name'],
+            "electricity_distributor_id" => $data['electricity_distributor_id']
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Token ' . config('services.vtu.key'),
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json'
+        ])->post(
+            config('services.vtu.purchase_url') . "electricity",
+            $payload
+        );
+
+        $body = $response->json();
+
+        /*
+        |--------------------------------------------------------------------------
+        | HANDLE PROVIDER RESPONSE
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$response->successful()) {
+
+            $transaction->update([
+                'status' => 'failed'
+            ]);
+
+            DB::commit();
+
+            return [
+                'status' => false,
+                'message' => 'VTU provider request failed',
+                'provider_response' => $body,
+                'balance' => $wallet->fresh()->balance
+            ];
+        }
+
+        $providerStatus = strtolower(
+            $body['status'] ?? $body['Status'] ?? ''
+        );
+
+        if ($providerStatus === 'success' || $providerStatus === 'successful') {
+
+            $wallet->decrement('balance', $amount);
+
+            $transaction->update([
+                'status' => 'success',
+                'meta' => json_encode(array_merge(
+                    json_decode($transaction->meta, true),
+                    [
+                        'token' => $body['token'] ?? null,
+                        'provider_response' => $body
+                    ]
+                ))
+            ]);
+        }
+        elseif ($providerStatus === 'pending') {
+
+            $transaction->update([
+                'status' => 'pending'
+            ]);
+        }
+        else {
+
+            $transaction->update([
+                'status' => 'failed'
+            ]);
+        }
+
+        DB::commit();
+
+        return [
+            'status' => true,
+            'transaction' => $transaction,
+            'provider_response' => $body,
+            'balance' => $wallet->fresh()->balance
+        ];
+
+    }
+    catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return [
+            'status' => false,
+            'message' => $e->getMessage(),
+            'balance' => $wallet?->fresh()->balance ?? 0
+        ];
+    }
+}
 }
