@@ -64,6 +64,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             NetworkSeeder::class,
             DataPlanSeeder::class,
+            AvailableDataPlanSeeder::class,
+            DataPlanSeederGlo9::class,
+            PlanCategorySeeder::class,
+            NetworkPlanCategorySeeder::class,
+            ElectricityProviderSeeder::class,
+            MissingDataPlansSeeder::class,
+
         ]);
     }
 }

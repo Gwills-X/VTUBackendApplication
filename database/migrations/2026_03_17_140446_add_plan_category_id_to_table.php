@@ -6,23 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('available_data_plans', function (Blueprint $table) {
-            $table->unsignedBigInteger('network_plan_category_id')->nullable();
-
-            $table->foreign('network_plan_category_id')
-                ->references('id')
-                ->on('network_plan_categories')
-                ->onDelete('cascade');
+            $table->unsignedBigInteger('plan_category_id')->nullable()->after("updated_at");
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('available_data_plans', function (Blueprint $table) {
-            $table->dropForeign(['network_plan_category_id']);
-            $table->dropColumn('network_plan_category_id');
+            //
         });
     }
 };

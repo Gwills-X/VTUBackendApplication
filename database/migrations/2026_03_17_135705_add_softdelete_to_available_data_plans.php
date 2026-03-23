@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('available_data_plans', function (Blueprint $table) {
-            $table->boolean('active')->default(true)->after('validity');
+            $table->softDeletes();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('available_data_plans', function (Blueprint $table) {
-            $table->dropColumn("active");
+            //
         });
     }
 };

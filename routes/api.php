@@ -22,7 +22,8 @@ use App\Http\Controllers\User\Transactions;
 use App\Http\Controllers\User\DataPlanController as UserDataController;
 use App\Http\Controllers\User\ElectricityController as UserElectricityController;
 use App\Http\Controllers\Webhook\VtuWebhookController;
-
+// ensuring the logged in person is an admin
+use App\Http\Middleware\EnsureUserIsAdmin;
 /*
 |--------------------------------------------------------------------------
 | AUTH ROUTES
@@ -49,7 +50,7 @@ Route::post('/email/verification-notification', [EmailVerificationNotificationCo
 | ADMIN ROUTES (Admin Only)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:sanctum'])
+Route::middleware(['auth:sanctum', EnsureUserIsAdmin::class])
     ->prefix('admin')
     ->group(function () {
 
