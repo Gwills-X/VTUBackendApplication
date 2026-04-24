@@ -35,7 +35,7 @@ return [
         ],
     ],
 'vtu' => [
-    'key' => env('VTU_KEY'),
+    'key' => env('VTU_API_KEY'),
     'purchase_url' => env('VTU_PURCHASE_URL'),
 
 ],
