@@ -8,7 +8,7 @@ use App\Models\NetworkPlanCategory;
 
 class PlanCategory extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name','active'];
 
     public function plans()
     {

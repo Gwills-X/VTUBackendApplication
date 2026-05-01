@@ -10,7 +10,8 @@ class NetworkPlanCategory extends Model
 {
     protected $fillable = [
         'name',
-        'plan_category_id'
+        'plan_category_id',
+        "active"
     ];
 
     public function planCategory()

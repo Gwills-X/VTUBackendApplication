@@ -9,6 +9,19 @@ use App\Models\NetworkPlanCategory;
 
 class NetworkPlanCategoryController extends Controller
 {
+    public function index()
+{
+    $categories = PlanCategory::with(['networkCategories' => function ($query) {
+        $query->orderBy('name');
+    }])
+    ->orderBy('name')
+    ->get();
+
+    return response()->json([
+        'status' => true,
+        'data' => $categories
+    ]);
+}
     /**
      * Create Plan Category + Network Plan Category
      */
@@ -44,4 +57,36 @@ class NetworkPlanCategoryController extends Controller
             ]
         ]);
     }
+
+public function togglePlanCategory($id)
+{
+    $category = PlanCategory::findOrFail($id);
+
+    $category->active = !$category->active;
+    $category->save();
+
+    // 🔥 Cascade: disable all network categories under it
+    if (!$category->active) {
+        NetworkPlanCategory::where('plan_category_id', $category->id)
+            ->update(['active' => false]);
+    }
+
+    return response()->json([
+        "message" => "Plan category status updated",
+        "active" => $category->active
+    ]);
+}
+
+public function toggleNetworkCategory($id)
+{
+    $networkCategory = NetworkPlanCategory::findOrFail($id);
+
+    $networkCategory->active = !$networkCategory->active;
+    $networkCategory->save();
+
+    return response()->json([
+        "message" => "Network category status updated",
+        "active" => $networkCategory->active
+    ]);
+}
 }

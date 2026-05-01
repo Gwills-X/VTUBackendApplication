@@ -83,8 +83,11 @@ Route::middleware(['auth:sanctum', EnsureUserIsAdmin::class])
         Route::delete('/dataplans/{dataPlan}', [AdminDataPlanController::class, 'destroy']);
         Route::post('/dataplans/{id}/restore', [AdminDataPlanController::class, 'restore']);
         Route::get('/plan-categories', [AdminDataPlanController::class, 'filterOptions']);
-        Route::post('/network-plan-categories', [NetworkPlanCategoryController::class, 'store']);
         Route::put('/dataplans/{dataPlan}/toggle-active', [AdminDataPlanController::class, 'toggleActive']);
+        Route::get('/plan-categories/all', [NetworkPlanCategoryController::class, 'index']);
+        Route::post('/network-plan-categories', [NetworkPlanCategoryController::class, 'store']);
+        Route::post('/plan-categories/{id}/toggle', [NetworkPlanCategoryController::class, 'togglePlanCategory']);
+        Route::post('/network-plan-categories/{id}/toggle', [NetworkPlanCategoryController::class, 'toggleNetworkCategory']);
 
 
         // the apis for electricity

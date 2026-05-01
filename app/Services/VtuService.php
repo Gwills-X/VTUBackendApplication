@@ -184,7 +184,7 @@ if($amount < 0){
 
                 return [
                     'status' => false,
-                    'message' => 'VTU API connection failed',
+                    'message' => $body['message'] ?? 'VTU provider request failed',
                     'provider_response' => $body,
                     'balance' => $wallet->fresh()->balance
                 ];
