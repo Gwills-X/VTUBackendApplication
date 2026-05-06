@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\WalletController as AdminWalletController;
 use App\Http\Controllers\Admin\DataPlanController as AdminDataPlanController;
 use App\Http\Controllers\Admin\NetworkPlanCategoryController;
 use App\Http\Controllers\Admin\ElectricityController as AdminElectricityController;
+use App\Http\Controllers\Admin\CableManagementController as AdminCableManagementController;
 
 use App\Http\Controllers\User\UserController as NormalUserController;
 use App\Http\Controllers\User\WalletController as NormalWalletController;
@@ -100,7 +101,29 @@ Route::middleware(['auth:sanctum', EnsureUserIsAdmin::class])
     Route::patch('/electricity/{id}/toggle', [AdminElectricityController::class, 'toggle']);
 
     Route::delete('/electricity/{id}', [AdminElectricityController::class, 'destroy']);
+
+    // CABLE TV MANAGEMENT (ADMIN)
+    // -------------------------
+        Route::prefix('cable')->group(function () {
+            // Provider Management
+            Route::get('/providers', [AdminCableManagementController::class, 'index']);
+            Route::get('/trashed/plan', [AdminCableManagementController::class, 'trashed']);
+            Route::post('/providers', [AdminCableManagementController::class, 'storeProvider']);
+
+            Route::patch('/providers/{id}/toggle', [AdminCableManagementController::class, 'toggleStatus']); // Toggle provider active/inactive
+            Route::put('/providers/{id}', [AdminCableManagementController::class, 'updateProvider']); // Toggle provider active/inactive
+
+            // Plan Management
+            Route::post('/plans', [AdminCableManagementController::class, 'storePlan']);
+            Route::put('/plans/{id}', [AdminCableManagementController::class, 'updatePlan']);
+            Route::delete('/plans/{id}', [AdminCableManagementController::class, 'destroyPlan']); // Soft Delete
+            Route::patch('/plans/{id}/toggle', [AdminCableManagementController::class, 'togglePlanStatus']); // Toggle plan active/inactive
+        });
+
     });
+
+    // -------------------------
+
 
 /*
 |--------------------------------------------------------------------------
@@ -142,6 +165,22 @@ Route::middleware(['auth:sanctum'])
         Route::get('/dataplans/{id}', [UserDataController::class, 'show']);
 
         Route::get("/electricityProvider", [UserElectricityController::class, "providers"]);
+
+        // -------------------------
+// CABLE TV ROUTES (USER)
+// -------------------------
+        Route::prefix('cable')->group(function () {
+            // Get active providers and their active plans
+            Route::get('/available-services', [CablePurchaseController::class, 'getAvailableServices']);
+
+            // Search/Filter plans (Optional depending on your UI)
+            Route::get('/filter-plans', [CablePurchaseController::class, 'filterPlans']);
+
+            // Purchase - Must have PIN set
+            Route::middleware(['pin.set'])->group(function () {
+                Route::post('/purchase', [CablePurchaseController::class, 'purchase']);
+            });
+        });
     });
 
 // Webhook
